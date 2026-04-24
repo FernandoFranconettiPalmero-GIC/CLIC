@@ -1,0 +1,8 @@
+# Ignorar cualquier carpeta llamada "log"
+**/log/
+
+# Ignorar todos los .env
+*.env
+
+# No ignorar los .env.example
+!.env.example

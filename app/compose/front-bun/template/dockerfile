@@ -1,0 +1,54 @@
+# Imagen RUST Debian para multi-stage
+FROM rust:slim-trixie AS builder
+
+    # Instalacion del componente rust-src
+    RUN rustup component add rust-src
+
+# Imagen base BUN Debian
+FROM oven/bun:slim
+
+    # Eliminar usuario con UID 1000 si existe
+    RUN if getent passwd "${UID}" >/dev/null; then \
+            userdel -r "$(getent passwd "${UID}" | cut -d: -f1)" || true; \
+        fi \
+        && if getent group "${GID}" >/dev/null; then \
+            groupdel "$(getent group "${GID}" | cut -d: -f1)" || true; \
+        fi
+
+    # Instalacion paquetes desarrollo
+    RUN apt-get update \
+        && apt-get install -y --no-install-recommends \
+            # Dependencias de DevContainers
+            ca-certificates \
+            curl \
+            git \
+            wget \
+            # Dependencias de Tauri
+            build-essential \
+            file \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libssl-dev \
+            libwebkit2gtk-4.1-dev \
+            libxdo-dev \
+        # Limpieza de cache
+        && rm -rf /var/lib/apt/lists/*
+
+    # Copiar desde el multi-stage el entorno de Rust 
+    COPY --from=builder /usr/local/rustup/toolchains/*/ /usr/local/rust/
+
+    # Buscar binarios ejecutables y crear enlaces simbolicos para que sean publicos
+    RUN ln -sf /usr/local/rust/bin/* /usr/local/bin/ \
+        # Creacion enlaces simbolicos para npm o node
+        && ln -sf /usr/local/bin/bun /usr/local/bin/node \
+        && ln -sf /usr/local/bin/bun /usr/local/bin/npm
+
+    # Crear usuario con UID, nombre y alias proporcionados, además de personalizar el shell
+    RUN useradd -m -U -u ${UID} -s /bin/bash ${USER} \
+        && echo 'PS1="\w # "' >> /home/${USER}/.bash_aliases \
+        && echo "alias bun-run-dev='bun run dev -H 0.0.0.0'" >> /home/${USER}/.bash_aliases \
+        && echo "alias npm-run-dev='npm run dev -H 0.0.0.0'" >> /home/${USER}/.bash_aliases \
+        && chown ${USER}:${USER} /home/${USER}/.bash_aliases
+
+# Mantener contenedor vivo
+CMD ["tail", "-f", "/dev/null"]
