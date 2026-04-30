@@ -1,0 +1,33 @@
+services:
+
+  ${CONTAINER_SHELL}:
+    build:
+      context: .
+    image: ${CONTAINER_SHELL}
+    container_name: ${CONTAINER_SHELL}
+    user: "${UID}:${GID}"
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      # Variables de localizacion
+      LANG: C.UTF-8
+      TZ: Europe/Madrid
+      # Variables de WSLg
+      WAYLAND_DISPLAY: "wayland-0"
+      XDG_RUNTIME_DIR: "/tmp/wslg"
+    volumes:
+      # Directorio de trabajo
+      - ./workdir:/workdir
+      # Directorios de configuracion de Visual Studio Code y Git locales
+      - /home/${USER}/.vscode-server:/home/${USER}/.vscode-server
+      - /home/${USER}/.gitconfig:/home/${USER}/.gitconfig
+      # Directorio de montaje WSLg
+      - /mnt/wslg/runtime-dir:/tmp/wslg
+    networks:
+      - ${COMPOSE_NAME}_network
+    working_dir: /workdir
+
+networks:
+  ${COMPOSE_NAME}_network:
+    name: ${COMPOSE_NAME}_network
+    driver: bridge

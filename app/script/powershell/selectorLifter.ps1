@@ -122,7 +122,7 @@ while ($response -ne "Q") {
 
     Write-Host "> " -NoNewline -ForegroundColor Yellow; $response = (Read-Host).ToUpper();
 
-    $resultado = ($num = (($response -as [int]) -in (1..$nombresCarpetas.Count)))
+    $resultado = ($num = (($response -as [int]) -in (1..$folderName.Count)))
 
     switch ($response) {
         "R"             { Invoke-RestartShell }
