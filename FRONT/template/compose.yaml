@@ -3,7 +3,7 @@ services:
   ${CONTAINER_SHELL}:
     build:
       context: .
-    image: ${CONTAINER_SHELL}
+    image: bun-debian
     container_name: ${CONTAINER_SHELL}
     user: "${UID}:${GID}"
     ports:
