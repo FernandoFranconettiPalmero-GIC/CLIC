@@ -13,27 +13,6 @@ $pathExtension      = Join-Path $pathInit       "extension"
 $pathLatestLog     = Join-Path $pathInit "extension\log\latest.log"
 $pathLatestTmp     = Join-Path $pathInit "extension\log\latest.tmp"
 
-
-
-function Invoke-RestartShell {
-    Clear-Host
-    & $PSCommandPath -pathInit "$pathInit"
-    exit
-}
-
-function Invoke-HiddenLifter {
-    $pathSelectedCompose = Join-Path $pathCompose $folderName[$num - 1]
-
-    # --- Lanza hiddenLifter de forma oculta ---
-    Start-Process powershell -ArgumentList @(
-        "-executionPolicy bypass",
-        "-file", "`"$pathHiddenLifter`"",
-        "-pathSelectedCompose", "`"$pathSelectedCompose`"",
-        "-pathInit","`"$pathInit`""
-    ) -WindowStyle Hidden
-
-}
-
 function Invoke-InstaladorExtensiones {
     $pathTimestampLog  = Join-Path $pathExtension "log\$(Get-Date -Format 'yyyy-MM-ddTHH-mm-ss').log"
 
@@ -86,9 +65,10 @@ C:::::::C                    L::::::L                           I::::::I        
         CCCCCCCCCCCCCCCC    LLLLLLLLLLLLLLLLLLLLLLLL    IIIIIIIIIIIIIIIIIIIIIIII            CCCCCCCCCCCCCCCC
 
 CLIC is a Launching Interface for Containers; Developed by Netti;
-
 "@
 ) -ForegroundColor Magenta
+
+Write-Host;
 
 # --- Formateamos el selector ---
 #==========================================================================================================================
@@ -103,7 +83,7 @@ Write-Host;
 #==========================================================================================================================
 $folderName = Get-ChildItem $pathCompose -Directory | ForEach-Object Name
 
-$i = 0; foreach ($name in $folderName) {
+$i = 1; foreach ($name in $folderName) {
     Write-Host ("[{0,2}]" -f $i++) -NoNewline   -ForegroundColor White 
     Write-Host " $name"                         -ForegroundColor Yellow
 }
@@ -119,15 +99,28 @@ Write-Host;
 # --- Validamos la seleccion del usuario ---
 #==========================================================================================================================
 while ($response -ne "Q") {
+$response = $null
+    Write-Host "> " -NoNewline -ForegroundColor Yellow; $response = (Read-Host).ToUpper().Trim();
 
-    Write-Host "> " -NoNewline -ForegroundColor Yellow; $response = (Read-Host).ToUpper();
-
-    $resultado = ($num = (($response -as [int]) -in (1..$folderName.Count)))
+    $resultado = (($num = $response -as [int]) -and ($num -in 1..$folderName.Count))
 
     switch ($response) {
-        "R"             { Invoke-RestartShell }
+        "R"             {
+                            Clear-Host
+                            & $PSCommandPath -pathInit "$pathInit"
+                            exit
+                        }
         "I"             { Invoke-InstaladorExtensiones }
-        {$resultado}    { Invoke-HiddenLifter }
+        { $resultado }  {
+                            $pathSelectedCompose = (Join-Path $pathCompose ($folderName[$num - 1]))
+
+                            Start-Process powershell -ArgumentList @(
+                                "-executionPolicy bypass",
+                                "-file", "`"$pathHiddenLifter`"",
+                                "-pathSelectedCompose", "`"$pathSelectedCompose`"",
+                                "-pathInit","`"$pathInit`""
+                            ) -WindowStyle Hidden
+                        }
         default         { Write-Host "Respuesta invalida" -ForegroundColor Red }
     }
 
