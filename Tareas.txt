@@ -1,1 +1,0 @@
-añadir funcion carpeta WSL que contiene todo se llame como la carpeta padre que contiene los templates

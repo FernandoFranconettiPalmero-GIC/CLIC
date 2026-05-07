@@ -1,3 +1,7 @@
+x-environment: &localization
+  LANG: C.UTF-8
+  TZ: Europe/Madrid
+
 services:
 
   ${CONTAINER_SHELL}:
@@ -7,14 +11,15 @@ services:
     container_name: ${CONTAINER_SHELL}
     user: "${UID}:${GID}"
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1::3000"
+    restart: always
     environment:
       # Variables de localizacion
-      LANG: C.UTF-8
-      TZ: Europe/Madrid
+      <<: *localization
       # Variables de WSLg
       WAYLAND_DISPLAY: "wayland-0"
       XDG_RUNTIME_DIR: "/tmp/wslg"
+      GTK_THEME: "Adwaita:dark"
     volumes:
       # Directorio de trabajo
       - ./workdir:/workdir

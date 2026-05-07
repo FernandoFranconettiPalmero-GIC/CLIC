@@ -30,8 +30,8 @@ Start-Transcript -Path $pathLatestTmp -Force | Out-Null
     $pathBash               = Join-Path $pathInit               "script\bash"
 
     # --- Rutas WSL/Linux ---
-    $pathWSL    = "\\wsl$\Debian\home\$($env['USER'])\compose\$($env['COMPOSE_NAME'])"
-    $pathLinux  = "/home/$($env['USER'])/compose/$($env['COMPOSE_NAME'])"
+    $pathWSL    = "\\wsl$\Debian\home\$($env['USER'])\compose\$(Split-Path $pathSelectedCompose -Leaf)"
+    $pathLinux  = "/home/$($env['USER'])/compose/$(Split-Path $pathSelectedCompose -Leaf)"
 
     # --- Resuelve envVars de las plantillas ---
     Invoke-TemplateResolve `

@@ -1,12 +1,18 @@
+x-environment: &localization
+  LANG: C.UTF-8
+  TZ: Europe/Madrid
+
 services:
 
   database:
     image: postgres:18-bookworm
-    container_name: database
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1::5432"
     restart: always
     environment:
+      # Variables de localizacion
+      <<: *localization
+      # Variables de la BDD
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_SCHEMA}
       POSTGRES_USER: ${DATABASE_USER}
@@ -22,23 +28,39 @@ services:
     container_name: ${CONTAINER_SHELL}
     user: "${UID}:${GID}"
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1::8000"
     restart: always
     environment:
       # Variables de localizacion
-      LANG: C.UTF-8
-      TZ: Europe/Madrid
+      <<: *localization
     volumes:
       # Directorio de trabajo
       - ./workdir:/workdir
       # Directorios de configuracion de Visual Studio Code y Git locales
-      - ${HOME}/.vscode-server:${HOME}/.vscode-server
-      - ${HOME}/.gitconfig:${HOME}/.gitconfig
+      - /home/${USER}/.vscode-server:/home/${USER}/.vscode-server
+      - /home/${USER}/.gitconfig:/home/${USER}/.gitconfig
     depends_on:
       - database
     networks:
       - ${COMPOSE_NAME}_network
     working_dir: /workdir
+
+  mail:
+    image: axllent/mailpit:edge
+    ports:
+      - "127.0.0.1::8025"
+      - "127.0.0.1::1025"
+    restart: always
+    environment:
+      # Variables de localizacion
+      <<: *localization
+      # Variables de configuracion
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    depends_on:
+      - ${CONTAINER_SHELL}
+    networks:
+      - ${COMPOSE_NAME}_network
 
 volumes:
   database_data:
